@@ -3,23 +3,24 @@ import importlib
 import sys
 import os
 
+import global_config
+from interpreter import interpreter
+
 importlib.reload(sys)
 
 # argv 1 = Excel File Path
-# argv 2 = Client or Server     c - Client s - Server
+# argv 2 = Flag                 c - Client s - Server
 # argv 3 = Operation            1 - FormatParse 2 - DataParse 0 - Both
 if __name__ == '__main__':
 
     if len(sys.argv) < 3:
-        print("need three params")
-        sys.exit(-1)
+        sys.exit("please use path flag operation")
 
     excel_file = sys.argv[1]
-    language_type = sys.argv[2]
+    flag = sys.argv[2]
 
     if not sys.argv[3].isdigit():
-        print("params 3 is not ")
-        sys.exit(-2)
+        sys.exit("error operation")
 
     operation = int(sys.argv[3])
 
@@ -30,20 +31,20 @@ if __name__ == '__main__':
         raise
 
     language = ""
-    if language_type == "c":
-        language = "Client"
+    if flag == 'c':
+        language = global_config.client_language
         print("Choose Client")
-    elif language_type == "s":
-        language = "Server"
+    elif flag == 's':
+        language = global_config.server_language
         print("Choose Server")
     else:
-        print("params 2 is not c or s")
-        sys.exit(-3)
+        sys.exit("params 2 flag is not c or s")
 
     print(len(workbook.sheets()))
     for sheet in workbook.sheets():
-        if "Sheet" in sheet.name or "#" in sheet.name :
+        if "Sheet" in sheet.name or "#" in sheet.name:
             continue
         print("Start build Sheet: " + sheet.name)
+        interpreter(excel_file, sheet.name, language, flag)
 
     print("Hello world")
