@@ -1,3 +1,15 @@
+class language_type():
+    cplus = 1,
+    csharp = 2,
+    java = 3,
+    go = 4,
+    python = 5,
+
+global client_language
+global server_language
+client_language = language_type.cplus
+server_language = language_type.cplus
+
 global package_name
 package_name = "Data"
 
@@ -9,15 +21,13 @@ java_package = "com.example.data"
 global java_outer_classname
 java_outer_classname = "Data"
 
-# True/False
 global java_multiple_files
 java_multiple_files = True
 
-# SPEED = 0 / CODE_SIZE =1 / LITE_RUNTIME = 2
+# "SPEED" / "CODE_SIZE" / "LITE_RUNTIME"
 global optimize_for
-optimize_for = 0
+optimize_for = "SPEED"
 
-# True/False
 global cc_enable_arenas
 cc_enable_arenas = True
 
