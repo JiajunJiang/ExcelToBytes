@@ -52,7 +52,7 @@ class interpreter:
 
     def layout_file_header(self):
         self.content.append("syntax = \"proto3\";\n")
-        self.content.append("package = {};\n".format(global_config.package_name))
+        self.content.append("package {};\n".format(global_config.package_name))
         if self.language_type == global_config.language_type.java:
             self.content.append("option java_package = {};\n".format(global_config.java_package))
             self.content.append("option java_outer_classname = {};\n".format(global_config.java_outer_classname))
