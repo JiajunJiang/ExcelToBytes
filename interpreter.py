@@ -1,7 +1,7 @@
+# encoding:utf-8
+
 import sys
-
 import xlrd
-
 import global_config
 
 FIELD_RULE_ROW = 0  # optional or repeated
@@ -124,7 +124,7 @@ class interpreter:
         self.content.append("}\n")
 
     def write_file(self):
-        file = open("{}.proto".format(self.sheet_name), "w+")
+        file = open("{}.proto".format(self.sheet_name), "w+", encoding='utf-8')
         for line in self.content:
             temp = line.replace("optional", "            ").replace("repeated", "    repeated")
             file.write(temp)

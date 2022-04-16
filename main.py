@@ -1,3 +1,5 @@
+# encoding:utf-8
+
 import xlrd
 import importlib
 import sys
@@ -12,7 +14,6 @@ importlib.reload(sys)
 # argv 2 = Flag                 c - Client s - Server
 # argv 3 = Operation            1 - FormatParse 2 - DataParse 0 - Both
 if __name__ == '__main__':
-
     if len(sys.argv) < 3:
         sys.exit("please use path flag operation")
 
