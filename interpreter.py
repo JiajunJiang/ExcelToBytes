@@ -46,6 +46,7 @@ class interpreter:
         self.layout_struct_name(self.sheet_name)
         self.layout_field()
         self.layout_tail()
+        self.layout_list()
         self.write_file()
         print(self.content)
 
@@ -122,6 +123,13 @@ class interpreter:
 
     def layout_tail(self):
         self.content.append("}\n")
+
+    def layout_list(self):
+        self.content.append("\n")
+        self.content.append("message {}List\n".format(self.sheet_name))
+        self.content.append("{\n")
+        self.content.append("repeated {} list = 1;".format(self.sheet_name))
+        self.content.append("\n}")
 
     def write_file(self):
         file = open("{}.proto".format(self.sheet_name), "w+", encoding='utf-8')
