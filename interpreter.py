@@ -45,25 +45,27 @@ class interpreter:
         self.layout_file_header()
         self.layout_struct_name(self.sheet_name)
         self.layout_field()
+        self.layout_tail()
+        self.write_file()
         print(self.content)
 
     def layout_file_header(self):
         self.content.append("syntax = \"proto3\";\n")
-        self.content.append("package = %s;\n" % global_config.package_name)
+        self.content.append("package = {};\n".format(global_config.package_name))
         if self.language_type == global_config.language_type.java:
-            self.content.append("option java_package = %s;" % global_config.java_package)
-            self.content.append("option java_outer_classname = %s;" % global_config.java_outer_classname)
+            self.content.append("option java_package = {};\n".format(global_config.java_package))
+            self.content.append("option java_outer_classname = {};\n".format(global_config.java_outer_classname))
             self.content.append(
-                "option java_outer_classname = %s;" % ("true" if global_config.java_multiple_files else "false"))
-            self.content.append("option optimize_for = %s;" % global_config.optimize_for)
+                "option java_outer_classname = {};\n".format("true" if global_config.java_multiple_files else "false"))
+            self.content.append("option optimize_for = {};\n".format(global_config.optimize_for))
 
         if self.language_type == global_config.language_type.cplus:
-            self.content.append("option optimize_for = %s;" % global_config.optimize_for)
+            self.content.append("option optimize_for = {};\n".format(global_config.optimize_for))
             self.content.append(
-                "option cc_enable_arenas = %s;" % ("true" if global_config.cc_enable_arenas else "false"))
+                "option cc_enable_arenas = {};\n".format("true" if global_config.cc_enable_arenas else "false"))
 
     def layout_struct_name(self, struct_name):
-        self.content.append("message %s\n{" % struct_name)
+        self.content.append("\nmessage %s\n{\n" % struct_name)
 
     def layout_field(self):
         while self.current_col < self.col_length:
@@ -84,7 +86,7 @@ class interpreter:
         name = str(self.sheet.cell_value(FIELD_NAME_ROW, self.current_col))
         desc = str(self.sheet.cell_value(FIELD_DESC_ROW, self.current_col))
 
-        if not self.check_flag(field_type):
+        if not self.check_type(field_type):
             sys.exit("Error Field Type Col = {} name = {}".format(self.current_col, name))
 
         if rule == "optional":
@@ -117,3 +119,13 @@ class interpreter:
             return True
         else:
             return False
+
+    def layout_tail(self):
+        self.content.append("}\n")
+
+    def write_file(self):
+        file = open("{}.proto".format(self.sheet_name), "w+")
+        for line in self.content:
+            temp = line.replace("optional", "            ").replace("repeated", "    repeated")
+            file.write(temp)
+        file.close()
