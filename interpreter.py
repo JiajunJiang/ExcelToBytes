@@ -2,7 +2,9 @@
 
 import sys
 import xlrd
+
 import global_config
+from command import command
 
 FIELD_RULE_ROW = 0  # optional or repeated
 FIELD_TYPE_ROW = 1  # protobuf type
@@ -18,6 +20,7 @@ class interpreter:
         self.language_type = language_type
         self.sheet_name = sheet_name
         self.file_path = file_path
+        self.pb_name = "{}.proto".format(self.sheet_name)
 
         self.current_col = 0
         self.field_count = 1
@@ -48,6 +51,7 @@ class interpreter:
         self.layout_tail()
         self.layout_list()
         self.write_file()
+        command.build_python_file(self.pb_name)
         print(self.content)
 
     def layout_file_header(self):
@@ -132,7 +136,7 @@ class interpreter:
         self.content.append("\n}")
 
     def write_file(self):
-        file = open("{}.proto".format(self.sheet_name), "w+", encoding='utf-8')
+        file = open(self.pb_name, "w+", encoding='utf-8')
         for line in self.content:
             temp = line.replace("optional", "            ").replace("repeated", "    repeated")
             file.write(temp)
