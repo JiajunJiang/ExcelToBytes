@@ -1,4 +1,5 @@
 import os
+import sys
 
 import global_config
 
@@ -22,4 +23,9 @@ class command:
 
         print(command)
         os.system(command)
+
+    @staticmethod
+    def load_moudle(pb_file):
+        sys.path.append(os.getcwd())
+        exec('from ' + pb_file + ' import *')
 

@@ -7,6 +7,7 @@ import os
 
 import global_config
 from interpreter import interpreter
+from parse import parse
 
 importlib.reload(sys)
 
@@ -47,5 +48,6 @@ if __name__ == '__main__':
             continue
         print("Start build Sheet: " + sheet.name)
         interpreter(excel_file, sheet.name, language, flag)
+        parse(excel_file, sheet.name, language, flag)
 
     print("Hello world")
