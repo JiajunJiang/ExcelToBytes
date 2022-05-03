@@ -57,9 +57,6 @@ class parse:
         array_list = getattr(self.module, self.sheet_name + 'List')()
 
         for self.current_row in range(FIELD_VALUE_ROW, self.row_length):
-            value = str(self.sheet.cell_value(self.current_row, 0)).strip()
-            print(value)
-
             item = array_list.list.add()
             self.parse_item(item)
 
@@ -77,6 +74,72 @@ class parse:
     def parse_field(self, item):
         field_type = str(self.sheet.cell_value(FIELD_TYPE_ROW, self.current_col))
         rule = str(self.sheet.cell_value(FIELD_RULE_ROW, self.current_col))
+        field_name = str(self.sheet.cell_value(FIELD_NAME_ROW, self.current_col))
 
-        print(field_type)
-        print(rule)
+        if rule == "optional":
+            self.set_optional_value(field_type, field_name, item)
+        elif rule == "repeated":
+            self.set_repeated_value(field_type, field_name, item)
+
+    def set_repeated_value(self, field_type, field_name, item):
+        field_value = self.sheet.cell_value(self.current_row, self.current_col)
+        if len(str(field_value)) > 0:
+            if str(field_value).find(";"):
+                field_value_list = str(field_value).split(';')
+            else:
+                field_value_list = []
+                field_value_list.append(field_value)
+            for temp in field_value_list:
+                if len(str(temp)) > 0:
+                    if field_type == "int32" \
+                            or field_type == "int64" \
+                            or field_type == "uint32" \
+                            or field_type == "uint64" \
+                            or field_type == "sint32" \
+                            or field_type == "sint64" \
+                            or field_type == "fixed32" \
+                            or field_type == "fixed64" \
+                            or field_type == "sfixed32" \
+                            or field_type == "sfixed64":
+                        item.__getattribute__(field_name).append(int(field_value))
+                    elif field_type == "float" or field_type == "double":
+                        item.__getattribute__(field_name).append(float(field_value))
+                    elif field_type == "bool":
+                        item.__getattribute__(field_name).append(True if int(field_value) == 1 else False)
+                    elif field_type == "string":
+                        item.__getattribute__(field_name).append(field_value.encode("utf8"))
+
+    def set_optional_value(self, field_type, field_name, item):
+        field_value = self.sheet.cell_value(self.current_row, self.current_col)
+        if field_type == "int32" \
+                or field_type == "int64" \
+                or field_type == "uint32" \
+                or field_type == "uint64" \
+                or field_type == "sint32" \
+                or field_type == "sint64" \
+                or field_type == "fixed32" \
+                or field_type == "fixed64" \
+                or field_type == "sfixed32" \
+                or field_type == "sfixed64":
+            if len(str(field_value)) == 0:
+                item.__setattr__(field_name, 0)
+            else:
+                item.__setattr__(field_name, int(field_value))
+        elif field_type == "float" or field_type == "double":
+            if len(str(field_value)) == 0:
+                item.__setattr__(field_name, 0.0)
+            else:
+                item.__setattr__(field_name, float(field_value))
+        elif field_type == "bool":
+            if len(str(field_value)) == 0:
+                item.__setattr__(field_name, False)
+            else:
+                item.__setattr__(field_name, True if int(field_value) == 1 else False)
+        elif field_type == "string":
+            if len(str(field_value)) == 0:
+                item.__setattr__(field_name, "")
+            else:
+                item.__setattr__(field_name, field_value)
+        else:
+            print("error filed_type {}".format(field_type))
+            raise
