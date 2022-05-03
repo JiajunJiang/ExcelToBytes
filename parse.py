@@ -2,6 +2,7 @@ import sys
 
 import xlrd
 
+import global_config
 from command import command
 
 FIELD_RULE_ROW = 0  # optional or repeated
@@ -60,6 +61,9 @@ class parse:
             item = array_list.list.add()
             self.parse_item(item)
 
+        data = array_list.SerializeToString()
+        self.save(data)
+
     def parse_item(self, item):
         self.current_col = 0
         while self.current_col < self.col_length:
@@ -101,13 +105,13 @@ class parse:
                             or field_type == "fixed64" \
                             or field_type == "sfixed32" \
                             or field_type == "sfixed64":
-                        item.__getattribute__(field_name).append(int(field_value))
+                        item.__getattribute__(field_name).append(int(float(temp)))
                     elif field_type == "float" or field_type == "double":
-                        item.__getattribute__(field_name).append(float(field_value))
+                        item.__getattribute__(field_name).append(float(temp))
                     elif field_type == "bool":
-                        item.__getattribute__(field_name).append(True if int(field_value) == 1 else False)
+                        item.__getattribute__(field_name).append(True if int(float(temp)) == 1 else False)
                     elif field_type == "string":
-                        item.__getattribute__(field_name).append(field_value.encode("utf8"))
+                        item.__getattribute__(field_name).append(temp.encode("utf8"))
 
     def set_optional_value(self, field_type, field_name, item):
         field_value = self.sheet.cell_value(self.current_row, self.current_col)
@@ -124,7 +128,7 @@ class parse:
             if len(str(field_value)) == 0:
                 item.__setattr__(field_name, 0)
             else:
-                item.__setattr__(field_name, int(field_value))
+                item.__setattr__(field_name, int(float(field_value)))
         elif field_type == "float" or field_type == "double":
             if len(str(field_value)) == 0:
                 item.__setattr__(field_name, 0.0)
@@ -134,7 +138,7 @@ class parse:
             if len(str(field_value)) == 0:
                 item.__setattr__(field_name, False)
             else:
-                item.__setattr__(field_name, True if int(field_value) == 1 else False)
+                item.__setattr__(field_name, True if int(float(field_value)) == 1 else False)
         elif field_type == "string":
             if len(str(field_value)) == 0:
                 item.__setattr__(field_name, "")
@@ -143,3 +147,12 @@ class parse:
         else:
             print("error filed_type {}".format(field_type))
             raise
+
+    def save(self, data):
+        if self.flag == 'c':
+            file_name = self.sheet_name.lower() + global_config.client_file_ext
+        elif self.flag == 's':
+            file_name = self.sheet_name.lower() + global_config.server_file_ext
+        file = open(file_name, 'wb+')
+        file.write(data)
+        file.close()

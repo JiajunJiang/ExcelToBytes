@@ -34,3 +34,8 @@ cc_enable_arenas = True
 # Objective-C only
 global objc_class_prefix
 objc_class_prefix = "NS"
+
+global client_file_ext
+global server_file_ext
+client_file_ext = ".bytes"
+server_file_ext = ".bin"
