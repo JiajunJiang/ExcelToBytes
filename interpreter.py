@@ -58,10 +58,10 @@ class interpreter:
         self.content.append("syntax = \"proto3\";\n")
         self.content.append("package {};\n".format(global_config.package_name))
         if self.language_type == global_config.language_type.java:
-            self.content.append("option java_package = {};\n".format(global_config.java_package))
-            self.content.append("option java_outer_classname = {};\n".format(global_config.java_outer_classname))
+            self.content.append("option java_package = \"{}\";\n".format(global_config.java_package))
+            self.content.append("option java_outer_classname = \"{}\";\n".format(global_config.java_outer_classname))
             self.content.append(
-                "option java_outer_classname = {};\n".format("true" if global_config.java_multiple_files else "false"))
+                "option java_multiple_files = {};\n".format("true" if global_config.java_multiple_files else "false"))
             self.content.append("option optimize_for = {};\n".format(global_config.optimize_for))
 
         if self.language_type == global_config.language_type.cplus:
