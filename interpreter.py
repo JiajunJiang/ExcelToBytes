@@ -69,6 +69,9 @@ class interpreter:
             self.content.append(
                 "option cc_enable_arenas = {};\n".format("true" if global_config.cc_enable_arenas else "false"))
 
+        if self.language_type == global_config.language_type.go:
+            self.content.append("option go_package=\"./;{}\";".format(self.sheet_name))
+
     def layout_struct_name(self, struct_name):
         self.content.append("\nmessage %s\n{\n" % struct_name)
 
