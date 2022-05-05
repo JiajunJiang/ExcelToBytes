@@ -7,11 +7,11 @@ from command import command
 
 
 class archive:
-    def __init__(self, sheet_name, flag):
+    def __init__(self, language, flag):
         self.bin_folder = ''
         self.proto_folder = ''
         self.script_folder = ''
-        self.sheet_name = sheet_name
+        self.language = language
         self.flag = flag
         self.start()
 
@@ -52,7 +52,16 @@ class archive:
             self.move_file(file, self.proto_folder)
 
     def archive_script_file(self):
-        file_list = glob('./' + '*.cs')
+        if self.language == global_config.language_type.java:
+            ext = "*.java"
+        elif self.language == global_config.language_type.csharp:
+            ext = "*.cs"
+        elif self.language == global_config.language_type.cplus:
+            ext = "*.pb.*"
+        elif self.language == global_config.language_type.python:
+            ext = "*_pb2.py"
+
+        file_list = glob('./' + ext)
         for file in file_list:
             self.move_file(file, self.script_folder)
 

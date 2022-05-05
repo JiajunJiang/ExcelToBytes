@@ -20,7 +20,8 @@ class command:
             command = "protoc.exe --csharp_out=./ " + file_name
         elif language_type == global_config.language_type.cplus:
             command = "protoc.exe --cpp_out=./ " + file_name
-
+        elif language_type == global_config.language_type.python:
+            command = "protoc.exe --python_out=./ " + file_name
         print(command)
         os.system(command)
 
