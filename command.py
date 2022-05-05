@@ -24,6 +24,9 @@ class command:
             command = "protoc.exe --python_out=./ " + file_name
         elif language_type == global_config.language_type.go:
             command = "protoc.exe --go_out=./ " + file_name
+        elif language_type == global_config.language_type.php:
+            command = "protoc.exe --php_out=./ " + file_name
+
         print(command)
         os.system(command)
 

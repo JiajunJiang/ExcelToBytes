@@ -52,19 +52,31 @@ class archive:
             self.move_file(file, self.proto_folder)
 
     def archive_script_file(self):
-        if self.language == global_config.language_type.java:
-            ext = "*.java"
-        elif self.language == global_config.language_type.csharp:
-            ext = "*.cs"
-        elif self.language == global_config.language_type.cplus:
-            ext = "*.pb.*"
-        elif self.language == global_config.language_type.python:
-            ext = "*_pb2.py"
-        elif self.language == global_config.language_type.go:
-            ext = "*.go"
-        file_list = glob('./' + ext)
-        for file in file_list:
-            self.move_file(file, self.script_folder)
+        if self.language == global_config.language_type.php:
+            command.mkdir(self.script_folder + '/GPBMetadata')
+            file_list = glob('./GPBMetadata/*.php')
+            for file in file_list:
+                self.move_file(file, self.script_folder + '/GPBMetadata')
+            command.mkdir(self.script_folder + '/Data')
+            file_list = glob('./Data/*.php')
+            for file in file_list:
+                self.move_file(file, self.script_folder + '/Data')
+            os.rmdir('GPBMetadata')
+            os.rmdir('Data')
+        else:
+            if self.language == global_config.language_type.java:
+                ext = "*.java"
+            elif self.language == global_config.language_type.csharp:
+                ext = "*.cs"
+            elif self.language == global_config.language_type.cplus:
+                ext = "*.pb.*"
+            elif self.language == global_config.language_type.python:
+                ext = "*_pb2.py"
+            elif self.language == global_config.language_type.go:
+                ext = "*.go"
+            file_list = glob('./' + ext)
+            for file in file_list:
+                self.move_file(file, self.script_folder)
 
     def archive_bin_file(self):
         if self.flag == 'c':
