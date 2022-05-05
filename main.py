@@ -6,6 +6,7 @@ import sys
 import os
 
 import global_config
+from archive import archive
 from interpreter import interpreter
 from parse import parse
 
@@ -49,5 +50,6 @@ if __name__ == '__main__':
         print("Start build Sheet: " + sheet.name)
         interpreter(excel_file, sheet.name, language, flag)
         parse(excel_file, sheet.name, language, flag)
+        archive(sheet.name, flag)
 
     print("Hello world")
