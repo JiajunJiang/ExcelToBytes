@@ -7,6 +7,7 @@ import os
 
 import global_config
 from archive import archive
+from command import command
 from interpreter import interpreter
 from parse import parse
 
@@ -51,5 +52,8 @@ if __name__ == '__main__':
         interpreter(excel_file, sheet.name, language, flag)
         parse(excel_file, sheet.name, language, flag)
         archive(sheet.name, flag)
+
+        command.build_language_file(sheet.name.lower() + '.proto', language)
+
 
     print("Hello world")
