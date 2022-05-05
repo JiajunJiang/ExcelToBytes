@@ -56,11 +56,11 @@ class archive:
             command.mkdir(self.script_folder + '/GPBMetadata')
             file_list = glob('./GPBMetadata/*.php')
             for file in file_list:
-                self.move_file(file, self.script_folder + '/GPBMetadata')
+                self.move_file(file, self.script_folder + 'GPBMetadata/')
             command.mkdir(self.script_folder + '/Data')
             file_list = glob('./Data/*.php')
             for file in file_list:
-                self.move_file(file, self.script_folder + '/Data')
+                self.move_file(file, self.script_folder + 'Data/')
             os.rmdir('GPBMetadata')
             os.rmdir('Data')
         else:
