@@ -63,10 +63,19 @@ class archive:
                 self.move_file(file, self.script_folder + 'Data/')
             os.rmdir('GPBMetadata')
             os.rmdir('Data')
+        elif self.language == global_config.language_type.java:
+            java_list = global_config.java_package.split('.')
+            java_folder = ''
+            for name in java_list:
+                java_folder += name + '/'
+            print(java_folder)
+            command.mkdir(self.script_folder + 'com/example/data')
+            file_list = glob('./{}*.java'.format(java_folder))
+            for file in file_list:
+                self.move_file(file, self.script_folder + '/' + java_folder)
+            os.rmdir(java_folder)
         else:
-            if self.language == global_config.language_type.java:
-                ext = "*.java"
-            elif self.language == global_config.language_type.csharp:
+            if self.language == global_config.language_type.csharp:
                 ext = "*.cs"
             elif self.language == global_config.language_type.cplus:
                 ext = "*.pb.*"

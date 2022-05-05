@@ -39,4 +39,4 @@ class command:
     def mkdir(folder_name):
         path = os.path.join(os.curdir + "/" + folder_name)
         if os.path.exists(path) is False:
-            os.mkdir(path)
+            os.makedirs(path)
