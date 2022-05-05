@@ -21,6 +21,7 @@ class archive:
         self.archive_bin_file()
         self.archive_proto_file()
         self.archive_script_file()
+        self.remove_temp_pb_file()
 
     def mkdir(self):
         if self.flag == 'c':
