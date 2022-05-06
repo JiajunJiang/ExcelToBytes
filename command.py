@@ -28,6 +28,11 @@ class command:
             command = "protoc.exe --php_out=./ " + file_name
         elif language_type == global_config.language_type.js:
             command = "protoc.exe --js_out=./ " + file_name
+        elif language_type == global_config.language_type.kotlin:
+            command = "protoc.exe --kotlin_out=./ " + file_name
+        else:
+            print("Unknown Language Type OutPut Failed");
+            raise
 
         print(command)
         os.system(command)

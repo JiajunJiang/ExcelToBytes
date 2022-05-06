@@ -6,6 +6,7 @@ class language_type():
     python = 5,
     php = 6,
     js = 7,
+    kotlin = 8,
 
 global client_language
 global server_language

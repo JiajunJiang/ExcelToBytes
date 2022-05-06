@@ -74,6 +74,12 @@ class archive:
             for file in file_list:
                 self.move_file(file, self.script_folder + '/' + java_folder)
             os.rmdir(java_folder)
+        elif self.language == global_config.language_type.kotlin:
+            command.mkdir(self.script_folder + '/Data')
+            file_list = glob('./Data/*.kt')
+            for file in file_list:
+                self.move_file(file, self.script_folder + 'Data/')
+            os.rmdir('Data')
         else:
             if self.language == global_config.language_type.csharp:
                 ext = "*.cs"
@@ -85,6 +91,9 @@ class archive:
                 ext = "*.go"
             elif self.language == global_config.language_type.js:
                 ext = "*.js"
+            else:
+                print("Unknown Language Type Archive Failed");
+                raise
 
             file_list = glob('./' + ext)
             for file in file_list:
