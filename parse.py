@@ -58,8 +58,9 @@ class parse:
         array_list = getattr(self.module, self.sheet_name + 'List')()
 
         for self.current_row in range(FIELD_VALUE_ROW, self.row_length):
-            item = array_list.list.add()
-            self.parse_item(item)
+            if not self.check_annotation():
+                item = array_list.list.add()
+                self.parse_item(item)
 
         data = array_list.SerializeToString()
         self.save(data)
@@ -70,6 +71,11 @@ class parse:
             if self.check_flag():
                 self.parse_field(item)
             self.current_col += 1
+
+    def check_annotation(self):
+        if self.current_col == 0:
+            field_value = self.sheet.cell_value(self.current_row, self.current_col)
+            return str(field_value).__contains__("#")
 
     def check_flag(self):
         key = str(self.sheet.cell_value(FIELD_FLAG_ROW, self.current_col)).strip().lower()
