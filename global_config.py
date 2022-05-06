@@ -5,6 +5,7 @@ class language_type():
     go = 4,
     python = 5,
     php = 6,
+    js = 7,
 
 global client_language
 global server_language

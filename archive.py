@@ -83,6 +83,9 @@ class archive:
                 ext = "*_pb2.py"
             elif self.language == global_config.language_type.go:
                 ext = "*.go"
+            elif self.language == global_config.language_type.js:
+                ext = "*.js"
+
             file_list = glob('./' + ext)
             for file in file_list:
                 self.move_file(file, self.script_folder)
