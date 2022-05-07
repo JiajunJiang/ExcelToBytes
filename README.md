@@ -29,7 +29,7 @@ global_config.py 可以进行修改
 
 ## 使用方式
 #### py main.py Monster.xlsx  
-导出Monster.xls  
+导出Monster.xlsx
 #### py main.py Monster.xlsx c  
 仅导出跟客户端数据有关的Monster.xlsx  
 #### py main.py Monster.xlsx s  
