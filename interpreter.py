@@ -52,7 +52,6 @@ class interpreter:
         self.layout_list()
         self.write_file()
         command.build_python_file(self.pb_name)
-        print(self.content)
 
     def layout_file_header(self):
         self.content.append("syntax = \"proto3\";\n")

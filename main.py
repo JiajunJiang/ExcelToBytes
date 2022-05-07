@@ -15,18 +15,12 @@ importlib.reload(sys)
 
 # argv 1 = Excel File Path
 # argv 2 = Flag                 c - Client s - Server
-# argv 3 = Operation            1 - FormatParse 2 - DataParse 0 - Both
 if __name__ == '__main__':
     if len(sys.argv) < 3:
         sys.exit("please use path flag operation")
 
     excel_file = sys.argv[1]
     flag = sys.argv[2]
-
-    if not sys.argv[3].isdigit():
-        sys.exit("error operation")
-
-    operation = int(sys.argv[3])
 
     try:
         workbook = xlrd.open_workbook(excel_file)
@@ -44,7 +38,6 @@ if __name__ == '__main__':
     else:
         sys.exit("params 2 flag is not c or s")
 
-    print(len(workbook.sheets()))
     for sheet in workbook.sheets():
         if "Sheet" in sheet.name or "#" in sheet.name:
             continue
@@ -56,4 +49,4 @@ if __name__ == '__main__':
 
         archive(language, flag)
 
-    print("Hello world")
+        print("Build {} Success".format(sheet.name))
