@@ -7,7 +7,7 @@ pip install protobuf
 global_config.py 可以进行修改  
 #### client_language  
 #### server_language  
-可以进行客户端和服务器语言选择 支持 C++ C# Java Go Python php js kotlin  
+可以进行客户端和服务器语言选择 支持 C++ C# Java Go Python php js kotlin obj-c
 #### package_name  
 命名空间 所有语言都需要填写  
 #### java_package  
