@@ -91,6 +91,8 @@ class archive:
                 ext = "*.go"
             elif self.language == global_config.language_type.js:
                 ext = "*.js"
+            elif self.language == global_config.language_type.objc:
+                ext = "*.pbobjc.*"
             else:
                 print("Unknown Language Type Archive Failed");
                 raise

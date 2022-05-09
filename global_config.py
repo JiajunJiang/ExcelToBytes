@@ -7,6 +7,7 @@ class language_type():
     php = 6,
     js = 7,
     kotlin = 8,
+    objc = 9
 
 global client_language
 global server_language

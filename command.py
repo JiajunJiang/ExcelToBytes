@@ -30,6 +30,8 @@ class command:
             command = "protoc.exe --js_out=./ " + file_name
         elif language_type == global_config.language_type.kotlin:
             command = "protoc.exe --kotlin_out=./ " + file_name
+        elif language_type == global_config.language_type.objc:
+            command = "protoc.exe --objc_out=./ " + file_name
         else:
             print("Unknown Language Type OutPut Failed");
             raise
