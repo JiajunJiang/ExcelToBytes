@@ -11,8 +11,12 @@ from command import command
 from interpreter import interpreter
 from parse import parse
 
-importlib.reload(sys)
+from google.protobuf.internal import builder as _builder
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import descriptor_pool as _descriptor_pool
+from google.protobuf import symbol_database as _symbol_database
 
+importlib.reload(sys)
 
 # argv 1 = Excel File Path
 # argv 2 = Flag                 c - Client s - Server
