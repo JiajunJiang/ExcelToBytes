@@ -25,9 +25,9 @@ class archive:
 
     def mkdir(self):
         if self.flag == 'c':
-            folder_name = "Client"
+            folder_name = "../Client"
         elif self.flag == 's':
-            folder_name = "Server"
+            folder_name = "../Server"
         else:
             raise
 
