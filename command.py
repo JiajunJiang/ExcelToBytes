@@ -1,5 +1,6 @@
 import os
 import sys
+from importlib import reload
 
 import global_config
 
@@ -43,6 +44,14 @@ class command:
     def load_moudle(pb_file):
         sys.path.append(os.getcwd())
         exec('from ' + pb_file + ' import *')
+
+        reload(sys.modules["google.protobuf.internal.builder"])
+        reload(sys.modules["google.protobuf.descriptor"])
+        reload(sys.modules["google.protobuf.descriptor_pool"])
+        reload(sys.modules["google.protobuf.symbol_database"])
+
+        reload(sys.modules[pb_file])
+
 
     @staticmethod
     def mkdir(folder_name):
