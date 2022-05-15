@@ -149,7 +149,7 @@ class parse:
             if len(str(field_value)) == 0:
                 item.__setattr__(field_name, "")
             else:
-                item.__setattr__(field_name, field_value)
+                item.__setattr__(field_name, str(field_value))
         else:
             print("error filed_type {}".format(field_type))
             raise
