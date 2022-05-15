@@ -70,3 +70,6 @@ bool 可使用快捷填法 1 = true 2 = false
 元数据目录  
 proto协议目录  
 脚本目录
+
+## 打包指令
+pyinstaller -F main.py
