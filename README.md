@@ -1,7 +1,6 @@
 # 表格导出工具  
 ## 依赖库  
-pip install xlrd==1.2.0  
-pip install protobuf
+pip install -r requirements.txt
 
 ## 配置修改
 global_config.py 可以进行修改  
