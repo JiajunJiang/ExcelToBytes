@@ -14,24 +14,24 @@ class command:
         os.system(command)
 
     @staticmethod
-    def build_language_file(file_name, language_type):
-        if language_type == global_config.language_type.java:
+    def build_language_file(file_name, language_enum):
+        if language_enum == global_config.language_type.java:
             command = "protoc.exe --java_out=./ " + file_name
-        elif language_type == global_config.language_type.csharp:
+        elif language_enum == global_config.language_type.csharp:
             command = "protoc.exe --csharp_out=./ " + file_name
-        elif language_type == global_config.language_type.cplus:
+        elif language_enum == global_config.language_type.cplus:
             command = "protoc.exe --cpp_out=./ " + file_name
-        elif language_type == global_config.language_type.python:
+        elif language_enum == global_config.language_type.python:
             command = "protoc.exe --python_out=./ " + file_name
-        elif language_type == global_config.language_type.go:
+        elif language_enum == global_config.language_type.go:
             command = "protoc.exe --go_out=./ " + file_name
-        elif language_type == global_config.language_type.php:
+        elif language_enum == global_config.language_type.php:
             command = "protoc.exe --php_out=./ " + file_name
-        elif language_type == global_config.language_type.js:
+        elif language_enum == global_config.language_type.js:
             command = "protoc.exe --js_out=./ " + file_name
-        elif language_type == global_config.language_type.kotlin:
+        elif language_enum == global_config.language_type.kotlin:
             command = "protoc.exe --kotlin_out=./ " + file_name
-        elif language_type == global_config.language_type.objc:
+        elif language_enum == global_config.language_type.objc:
             command = "protoc.exe --objc_out=./ " + file_name
         else:
             print("Unknown Language Type OutPut Failed");

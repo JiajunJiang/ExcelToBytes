@@ -1,0 +1,11 @@
+client_language: 2
+server_language: 1
+package_name: Data
+java_package: com.example.data
+java_outer_classname: Data
+java_multiple_files: True
+optimize_for: SPEED
+cc_enable_arenas: True
+objc_class_prefix: NS
+client_file_ext: .bytes
+server_file_ext: .bin

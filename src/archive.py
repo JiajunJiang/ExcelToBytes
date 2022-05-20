@@ -64,7 +64,7 @@ class archive:
             os.rmdir('GPBMetadata')
             os.rmdir('Data')
         elif self.language == global_config.language_type.java:
-            java_list = global_config.java_package.split('.')
+            java_list = global_config.java_package().split('.')
             java_folder = ''
             for name in java_list:
                 java_folder += name + '/'
@@ -103,9 +103,9 @@ class archive:
 
     def archive_bin_file(self):
         if self.flag == 'c':
-            ext = global_config.client_file_ext
+            ext = global_config.client_file_ext()
         elif self.flag == 's':
-            ext = global_config.server_file_ext
+            ext = global_config.server_file_ext()
 
         file_list = glob('./' + '*' + ext)
         for file in file_list:

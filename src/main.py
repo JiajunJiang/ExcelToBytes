@@ -3,7 +3,7 @@
 import xlrd
 import importlib
 import sys
-import os
+
 
 import global_config
 from archive import archive
@@ -52,12 +52,16 @@ if __name__ == '__main__':
         print("open ExcelFile(%s) failed!" % excel_file)
         raise
 
+    global_config.load()
+
     language = ""
     if flag.__contains__('c'):
-        print("Choose Client")
-        build(global_config.client_language, 'c')
+        print("Build Client")
+        language_enum = global_config.language_type(global_config.client_language())
+        build(language_enum, 'c')
     if flag.__contains__('s'):
-        print("Choose Server")
-        build(global_config.server_language, 's')
+        print("Build Server")
+        language_enum = global_config.language_type(global_config.client_language())
+        build(language_enum, 's')
     if not flag.__contains__('c') and not flag.__contains__('s'):
         sys.exit("params 2 flag is not c or s")
