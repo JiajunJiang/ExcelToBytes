@@ -66,7 +66,7 @@ class interpreter:
         if self.language_type == global_config.language_type.cplus:
             self.content.append("option optimize_for = {};\n".format(global_config.optimize_for()))
             self.content.append(
-                "option cc_enable_arenas = {};\n".format("true" if global_config.cc_enable_arenas()else "false"))
+                "option cc_enable_arenas = {};\n".format("true" if global_config.cc_enable_arenas() else "false"))
 
         if self.language_type == global_config.language_type.go:
             self.content.append("option go_package=\"./;{}\";".format(self.sheet_name))

@@ -1,11 +1,37 @@
+#    cplus = 1
+#    csharp = 2
+#    java = 3
+#    go = 4
+#    python = 5
+#    php = 6
+#    js = 7
+#    kotlin = 8
+#    objc = 9
 client_language: 2
 server_language: 1
+
+#namespace
 package_name: Data
+
+#java_only
 java_package: com.example.data
+
+#java_only
 java_outer_classname: Data
+
+#java_only
 java_multiple_files: True
+
+# "SPEED" / "CODE_SIZE" / "LITE_RUNTIME"
 optimize_for: SPEED
+
+#c++ only
+# True / False
 cc_enable_arenas: True
+
+#object-c only
 objc_class_prefix: NS
+
+#file_extsion
 client_file_ext: .bytes
 server_file_ext: .bin

@@ -4,7 +4,6 @@ import xlrd
 import importlib
 import sys
 
-
 import global_config
 from archive import archive
 from command import command
@@ -17,6 +16,7 @@ from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import symbol_database as _symbol_database
 
 importlib.reload(sys)
+
 
 # argv 1 = Excel File Path
 # argv 2 = Flag                 c - Client s - Server

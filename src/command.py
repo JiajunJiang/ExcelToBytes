@@ -52,7 +52,6 @@ class command:
 
         reload(sys.modules[pb_file])
 
-
     @staticmethod
     def mkdir(folder_name):
         path = os.path.join(os.curdir + "/" + folder_name)
