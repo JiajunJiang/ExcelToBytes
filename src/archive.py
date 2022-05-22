@@ -25,18 +25,17 @@ class archive:
 
     def mkdir(self):
         if self.flag == 'c':
-            folder_name = "../Client"
+            self.script_folder = global_config.client_script_folder()
+            self.bin_folder = global_config.client_bin_folder()
+            self.proto_folder = global_config.client_proto_folder()
         elif self.flag == 's':
-            folder_name = "../Server"
+            self.script_folder = global_config.server_script_folder()
+            self.bin_folder = global_config.server_bin_folder()
+            self.proto_folder = global_config.server_proto_folder()
         else:
             raise
-
-        command.mkdir(folder_name)
-        self.script_folder = folder_name + "/script/"
         command.mkdir(self.script_folder)
-        self.bin_folder = folder_name + "/bin/"
         command.mkdir(self.bin_folder)
-        self.proto_folder = folder_name + "/proto/"
         command.mkdir(self.proto_folder)
 
     def move_file(self, file, destination):

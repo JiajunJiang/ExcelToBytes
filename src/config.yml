@@ -35,3 +35,11 @@ objc_class_prefix: NS
 #file_extsion
 client_file_ext: .bytes
 server_file_ext: .bin
+
+client_script_folder: ../Client/Assets/Scripts/Config/Script/
+client_bin_folder: ../Client/Assets/Scripts/Config/Bin/
+client_proto_folder: ../Client/Assets/Scripts/Config/Proto/
+
+server_script_folder: ../Server/script/
+server_bin_folder: ../Server/bin/
+server_proto_folder: ../Server/proto/

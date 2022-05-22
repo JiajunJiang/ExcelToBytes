@@ -82,3 +82,33 @@ def client_file_ext():
 def server_file_ext():
     global dict
     return dict['server_file_ext']
+
+
+def client_script_folder():
+    global dict
+    return dict['client_script_folder']
+
+
+def client_bin_folder():
+    global dict
+    return dict['client_bin_folder']
+
+
+def client_proto_folder():
+    global dict
+    return dict['client_proto_folder']
+
+
+def server_script_folder():
+    global dict
+    return dict['server_script_folder']
+
+
+def server_bin_folder():
+    global dict
+    return dict['server_bin_folder']
+
+
+def server_proto_folder():
+    global dict
+    return dict['server_proto_folder']
