@@ -28,7 +28,7 @@ def build(language, flag):
         interpreter(excel_file, sheet.name, language, flag)
         parse(excel_file, sheet.name, language, flag)
 
-        command.build_language_file(sheet.name.lower() + '.proto', language)
+        command.build_language_file(sheet.name + '.proto', language)
 
         archive(language, flag)
 

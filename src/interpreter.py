@@ -84,7 +84,7 @@ class interpreter:
                 self.current_col += 1
 
     def check_flag(self):
-        key = str(self.sheet.cell_value(FIELD_FLAG_ROW, self.current_col)).strip().lower()
+        key = str(self.sheet.cell_value(FIELD_FLAG_ROW, self.current_col)).strip()
         return key.__contains__(self.flag)
 
     def check_rule(self):

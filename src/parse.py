@@ -83,7 +83,7 @@ class parse:
             return str(field_value).__contains__("#")
 
     def check_flag(self):
-        key = str(self.sheet.cell_value(FIELD_FLAG_ROW, self.current_col)).strip().lower()
+        key = str(self.sheet.cell_value(FIELD_FLAG_ROW, self.current_col)).strip()
         return key.__contains__(self.flag)
 
     def parse_field(self, item):
@@ -161,9 +161,9 @@ class parse:
 
     def save(self, data):
         if self.flag == 'c':
-            file_name = self.sheet_name.lower() + global_config.client_file_ext()
+            file_name = self.sheet_name + global_config.client_file_ext()
         elif self.flag == 's':
-            file_name = self.sheet_name.lower() + global_config.server_file_ext()
+            file_name = self.sheet_name + global_config.server_file_ext()
         file = open(file_name, 'wb+')
         file.write(data)
         file.close()
