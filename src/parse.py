@@ -1,3 +1,5 @@
+# encoding:utf-8
+
 import sys
 
 import xlrd
@@ -64,6 +66,9 @@ class parse:
 
         data = array_list.SerializeToString()
         self.save(data)
+
+        if global_config.save_log():
+            self.save_log(str(array_list))
 
     def parse_item(self, item):
         self.current_col = 0
@@ -161,4 +166,13 @@ class parse:
             file_name = self.sheet_name.lower() + global_config.server_file_ext()
         file = open(file_name, 'wb+')
         file.write(data)
+        file.close()
+
+    def save_log(self, data):
+        if self.flag == 'c':
+            file_name = self.sheet_name + '.log'
+        elif self.flag == 's':
+            file_name = self.sheet_name + '.log'
+        file = open(file_name, 'wb+')
+        file.write(data.encode())
         file.close()

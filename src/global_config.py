@@ -84,6 +84,11 @@ def server_file_ext():
     return dict['server_file_ext']
 
 
+def save_log():
+    global dict
+    return dict['save_log']
+
+
 def client_script_folder():
     global dict
     return dict['client_script_folder']
@@ -99,6 +104,11 @@ def client_proto_folder():
     return dict['client_proto_folder']
 
 
+def client_log_folder():
+    global dict
+    return dict['client_log_folder']
+
+
 def server_script_folder():
     global dict
     return dict['server_script_folder']
@@ -112,3 +122,8 @@ def server_bin_folder():
 def server_proto_folder():
     global dict
     return dict['server_proto_folder']
+
+
+def server_log_folder():
+    global dict
+    return dict['server_log_folder']

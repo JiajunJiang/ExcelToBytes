@@ -11,6 +11,7 @@ class archive:
         self.bin_folder = ''
         self.proto_folder = ''
         self.script_folder = ''
+        self.log_folder = ''
         self.language = language
         self.flag = flag
         self.start()
@@ -21,6 +22,7 @@ class archive:
         self.archive_bin_file()
         self.archive_proto_file()
         self.archive_script_file()
+        self.archive_log_file()
         self.remove_temp_pb_file()
 
     def mkdir(self):
@@ -28,15 +30,18 @@ class archive:
             self.script_folder = global_config.client_script_folder()
             self.bin_folder = global_config.client_bin_folder()
             self.proto_folder = global_config.client_proto_folder()
+            self.log_folder = global_config.client_log_folder()
         elif self.flag == 's':
             self.script_folder = global_config.server_script_folder()
             self.bin_folder = global_config.server_bin_folder()
             self.proto_folder = global_config.server_proto_folder()
+            self.log_folder = global_config.server_log_folder()
         else:
             raise
         command.mkdir(self.script_folder)
         command.mkdir(self.bin_folder)
         command.mkdir(self.proto_folder)
+        command.mkdir(self.log_folder)
 
     def move_file(self, file, destination):
         file_path, file_name = os.path.split(file)
@@ -49,6 +54,11 @@ class archive:
         file_list = glob('./' + '*.proto')
         for file in file_list:
             self.move_file(file, self.proto_folder)
+
+    def archive_log_file(self):
+        file_list = glob('./' + '*.log')
+        for file in file_list:
+            self.move_file(file, self.log_folder)
 
     def archive_script_file(self):
         if self.language == global_config.language_type.php:
