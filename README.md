@@ -2,7 +2,8 @@
 
 ## 依赖库
 
-pip install -r requirements.txt
+pip install -r requirements.txt  
+其中protobuf的版本可根据需求更改为3.X的任意版本
 
 ## 配置修改
 
@@ -48,7 +49,7 @@ config.yml 可以进行修改
 
 分别代表客户端模式和服务器模式导出元数据的后缀名
 
-## 使用方式
+## 使用方式参考
 
 #### py main.py Monster.xlsx
 
@@ -65,7 +66,7 @@ config.yml 可以进行修改
 ## 配置表规范
 
 可参考Monster.xlsx  
-![image](https://github.com/JiajunJiang/ExcelToBytes/blob/Master/Example.jpg)
+![image](https://github.com/JiajunJiang/ExcelToBytes/blob/Master/Example.png)
 
 #### 1.修改工作簿名字
 
@@ -73,11 +74,13 @@ config.yml 可以进行修改
 
 #### 2.第一行为参数类型
 
-可填 optional或者repeated(数组)
+可填 optional、repeated(数组)、map(键值对)
 
 #### 3.第二行为参数类型
 
-可填 int32 int64 uint32 uint64 sint32 sint64 fixed32 fixed64 sfixed32 sfixed64 float double bool string
+可填 int32 int64 uint32 uint64 sint32 sint64 fixed32 fixed64 sfixed32 sfixed64 float double bool string  
+map类型可填2个类型以 , 分割
+
 
 #### 4.第三行为参数类型
 
@@ -85,7 +88,7 @@ config.yml 可以进行修改
 
 #### 5.第四行为备注
 
-本行看随意填写
+本行可随意填写
 
 #### 6.第五行为客户端和服务器标记
 
@@ -104,7 +107,7 @@ repeated字段所属列 需要使用 ; 进行数据分割
 
 #### 9.bool类型要求
 
-bool 可使用快捷填法 1 = true 2 = false
+bool 可使用快捷填法 1 = true 0 = false
 
 ## 自动归档
 
