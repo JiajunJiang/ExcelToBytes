@@ -102,10 +102,22 @@ class interpreter:
         elif rule == "repeated":
             self.content.append("repeated {} {} = {}; //{}\n".format(field_type, name, self.field_count, desc))
             self.field_count += 1
+        elif rule == "map":
+            self.content.append("map<{}> {} = {}; //{}\n".format(field_type, name, self.field_count, desc))
+            self.field_count += 1
         else:
             sys.exit("Field Rule Error rule = {} name = {}".format(rule, name))
 
     def check_type(self, field_type):
+        if field_type.__contains__(","):
+            list = str(field_type).split(',')
+            if len(list) != 2:
+                return False
+            return self.check_allow_type(list[0]) and self.check_allow_type(list[1])
+        else:
+            return self.check_allow_type(field_type)
+
+    def check_allow_type(self, field_type):
         if field_type == "int32" \
                 or field_type == "int64" \
                 or field_type == "uint32" \
@@ -120,9 +132,6 @@ class interpreter:
                 or field_type == "double" \
                 or field_type == "bool" \
                 or field_type == "string":
-            return True
-        elif field_type.__contains__("map"):
-            # todo map field
             return True
         else:
             return False
