@@ -106,15 +106,16 @@ class parse:
         key_type = field_type_list[0]
         value_type = field_type_list[1]
         field_value = self.sheet.cell_value(self.current_row, self.current_col)
-        field_value_list = field_value.split(';')
-        for value in field_value_list:
-            value_list = value.split('-')
-            if len(value_list) != 2:
-                print("value error {}".format(value_list))
-                raise
-            value1 = self.get_value_by_field(key_type, value_list[0])
-            value2 = self.get_value_by_field(value_type, value_list[1])
-            item.__getattribute__(field_name).__setitem__(value1, value2)
+        if len(field_value) > 0:
+            field_value_list = field_value.split(';')
+            for value in field_value_list:
+                value_list = value.split('-')
+                if len(value_list) != 2:
+                    print("value error {}".format(value_list))
+                    raise
+                value1 = self.get_value_by_field(key_type, value_list[0])
+                value2 = self.get_value_by_field(value_type, value_list[1])
+                item.__getattribute__(field_name).__setitem__(value1, value2)
 
     def set_repeated_value(self, field_type, field_name, item):
         field_value = self.sheet.cell_value(self.current_row, self.current_col)
