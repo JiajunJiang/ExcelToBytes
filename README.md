@@ -1,4 +1,8 @@
 # 表格导出工具
+可以快速将excel内容转换成二进制内容  
+读取速度比json快很多且文件体积也小很多  
+支持c++ c# java go python php js kotlin obj-c  
+支持windows mac linux
 
 ## 依赖库
 
@@ -124,3 +128,7 @@ proto协议目录
 ## 打包指令
 
 pyinstaller -F main.py
+
+## protobuf 版本替换  
+[Protobuf](https://github.com/protocolbuffers/protobuf/releases)  
+[Protobuf-go](https://github.com/protocolbuffers/protobuf-go/releases)
