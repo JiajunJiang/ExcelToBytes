@@ -7,8 +7,9 @@
 #    js = 7
 #    kotlin = 8
 #    objc = 9
-client_language: 2
-server_language: 1
+language: 2
+
+language_flag : c
 
 #namespace
 package_name: Data
@@ -33,18 +34,12 @@ cc_enable_arenas: True
 objc_class_prefix: NS
 
 #file_extsion
-client_file_ext: .bytes
-server_file_ext: .bin
+file_ext: .bytes
 
 #git/svn compare
 save_log: True
 
-client_script_folder: ../Client/script/
-client_bin_folder: ../Client/bin/
-client_proto_folder: ../Client/proto/
-client_log_folder: ../Client/log/
-
-server_script_folder: ../Server/script/
-server_bin_folder: ../Server/bin/
-server_proto_folder: ../Server/proto/
-server_log_folder: ../Server/log/
+script_folder: ../Client/script/
+bin_folder: ../Client/bin/
+proto_folder: ../Client/proto/
+log_folder: ../Client/log/

@@ -18,20 +18,20 @@ class language_type(Enum):
 dict = {}
 
 
-def load():
-    file = open("config.yml")
+def load(file_name):
+    file = open(file_name)
     global dict
     dict = yaml.safe_load(file)
 
 
-def client_language():
+def language():
     global dict
-    return dict['client_language']
+    return dict['language']
 
 
-def server_language():
+def language_flag():
     global dict
-    return dict['server_language']
+    return dict['language_flag']
 
 
 def package_name():
@@ -74,14 +74,9 @@ def objc_class_prefix():
     return dict['objc_class_prefix']
 
 
-def client_file_ext():
+def file_ext():
     global dict
-    return dict['client_file_ext']
-
-
-def server_file_ext():
-    global dict
-    return dict['server_file_ext']
+    return dict['file_ext']
 
 
 def save_log():
@@ -89,41 +84,21 @@ def save_log():
     return dict['save_log']
 
 
-def client_script_folder():
+def script_folder():
     global dict
-    return dict['client_script_folder']
+    return dict['script_folder']
 
 
-def client_bin_folder():
+def bin_folder():
     global dict
-    return dict['client_bin_folder']
+    return dict['bin_folder']
 
 
-def client_proto_folder():
+def proto_folder():
     global dict
-    return dict['client_proto_folder']
+    return dict['proto_folder']
 
 
-def client_log_folder():
+def log_folder():
     global dict
-    return dict['client_log_folder']
-
-
-def server_script_folder():
-    global dict
-    return dict['server_script_folder']
-
-
-def server_bin_folder():
-    global dict
-    return dict['server_bin_folder']
-
-
-def server_proto_folder():
-    global dict
-    return dict['server_proto_folder']
-
-
-def server_log_folder():
-    global dict
-    return dict['server_log_folder']
+    return dict['log_folder']

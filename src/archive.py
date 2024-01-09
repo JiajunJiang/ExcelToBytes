@@ -26,18 +26,10 @@ class archive:
         self.remove_temp_pb_file()
 
     def mkdir(self):
-        if self.flag == 'c':
-            self.script_folder = global_config.client_script_folder()
-            self.bin_folder = global_config.client_bin_folder()
-            self.proto_folder = global_config.client_proto_folder()
-            self.log_folder = global_config.client_log_folder()
-        elif self.flag == 's':
-            self.script_folder = global_config.server_script_folder()
-            self.bin_folder = global_config.server_bin_folder()
-            self.proto_folder = global_config.server_proto_folder()
-            self.log_folder = global_config.server_log_folder()
-        else:
-            raise
+        self.script_folder = global_config.script_folder()
+        self.bin_folder = global_config.bin_folder()
+        self.proto_folder = global_config.proto_folder()
+        self.log_folder = global_config.log_folder()
         command.mkdir(self.script_folder)
         command.mkdir(self.bin_folder)
         command.mkdir(self.proto_folder)
@@ -111,10 +103,7 @@ class archive:
                 self.move_file(file, self.script_folder)
 
     def archive_bin_file(self):
-        if self.flag == 'c':
-            ext = global_config.client_file_ext()
-        elif self.flag == 's':
-            ext = global_config.server_file_ext()
+        ext = global_config.file_ext()
 
         file_list = glob('./' + '*' + ext)
         for file in file_list:

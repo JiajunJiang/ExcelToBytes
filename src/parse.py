@@ -165,19 +165,13 @@ class parse:
             return None
 
     def save(self, data):
-        if self.flag == 'c':
-            file_name = self.sheet_name + global_config.client_file_ext()
-        elif self.flag == 's':
-            file_name = self.sheet_name + global_config.server_file_ext()
+        file_name = self.sheet_name + global_config.file_ext()
         file = open(file_name, 'wb+')
         file.write(data)
         file.close()
 
     def save_log(self, data):
-        if self.flag == 'c':
-            file_name = self.sheet_name + '.log'
-        elif self.flag == 's':
-            file_name = self.sheet_name + '.log'
+        file_name = self.sheet_name + '.log'
         file = open(file_name, 'wb+')
         file.write(data.encode())
         file.close()

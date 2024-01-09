@@ -1,4 +1,5 @@
 # encoding:utf-8
+import os
 
 import xlrd
 import importlib
@@ -41,10 +42,6 @@ if __name__ == '__main__':
         sys.exit("please input excel_file")
 
     excel_file = sys.argv[1]
-    if len(sys.argv) == 3:
-        flag = sys.argv[2]
-    else:
-        flag = 'cs'
 
     try:
         workbook = xlrd.open_workbook(excel_file)
@@ -52,16 +49,14 @@ if __name__ == '__main__':
         print("open ExcelFile(%s) failed!" % excel_file)
         raise
 
-    global_config.load()
+    yaml_files = [file for file in os.listdir(os.getcwd()) if file.endswith(".yml")]
+    data = []
+    for file in yaml_files:
+        global_config.load(file)
+        print("Build Start")
+        language_enum = global_config.language_type(global_config.language())
+        flag = str(global_config.language_flag())
+        print(flag)
+        build(language_enum, flag)
 
-    language = ""
-    if flag.__contains__('c'):
-        print("Build Client")
-        language_enum = global_config.language_type(global_config.client_language())
-        build(language_enum, 'c')
-    if flag.__contains__('s'):
-        print("Build Server")
-        language_enum = global_config.language_type(global_config.client_language())
-        build(language_enum, 's')
-    if not flag.__contains__('c') and not flag.__contains__('s'):
-        sys.exit("params 2 flag is not c or s")
+
