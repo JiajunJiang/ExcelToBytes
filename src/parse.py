@@ -1,12 +1,12 @@
 # encoding:utf-8
 
 import sys
-
 import xlrd
-
 import global_config
 from command import command
+from typing import Any, Dict, List, Union, Optional
 
+# Constants for row indices
 FIELD_RULE_ROW = 0  # optional or repeated
 FIELD_TYPE_ROW = 1  # protobuf type
 FIELD_NAME_ROW = 2  # field name
@@ -14,164 +14,165 @@ FIELD_DESC_ROW = 3  # description
 FIELD_FLAG_ROW = 4  # language flag
 FIELD_VALUE_ROW = 5  # value
 
+# Type aliases
+FieldValue = Union[int, float, bool, str, bytes]
+NumericTypes = {'int32', 'int64', 'uint32', 'uint64', 'sint32', 'sint64',
+                'fixed32', 'fixed64', 'sfixed32', 'sfixed64'}
+FloatTypes = {'float', 'double'}
 
-class parse:
-    def __init__(self, file_path, sheet_name, language_type, flag):
+
+class ExcelToProtobufParser:
+    def __init__(self, file_path: str, sheet_name: str, language_type: str, flag: str):
         self.module = None
-        self.pb_file = sheet_name + "_pb2"
+        self.pb_file = f"{sheet_name}_pb2"
         self.flag = flag
         self.language_type = language_type
         self.sheet_name = sheet_name
         self.file_path = file_path
 
-        self.current_col = 0
-        self.field_count = 1
-
         try:
             self.work_book = xlrd.open_workbook(self.file_path)
-        except BaseException as e:
-            print("can't open file %s" % self.file_path)
-            raise
-
-        try:
             self.sheet = self.work_book.sheet_by_name(self.sheet_name)
-        except BaseException as e:
-            print("can't open sheet %s " % self.sheet_name)
-            raise
+        except Exception as e:
+            raise RuntimeError(f"Failed to open file {self.file_path} or sheet {self.sheet_name}: {str(e)}")
 
-        self.row_length = len(self.sheet.col_values(0))
-        self.col_length = len(self.sheet.row_values(0))
+        self.row_count = len(self.sheet.col_values(0))
+        self.col_count = len(self.sheet.row_values(0))
 
-        self.current_row = 0
-        self.current_col = 0
+        self._load_module()
+        self._process_sheet()
 
-        self.load()
-
-    def load(self):
+    def _load_module(self) -> None:
+        """Dynamically load the protobuf module."""
         try:
             command.load_moudle(self.pb_file)
             self.module = sys.modules[self.pb_file]
-        except BaseException as e:
-            print("{} no exist or error".format(self.pb_file))
-            raise
-        self.start()
+        except Exception as e:
+            raise RuntimeError(f"Failed to load module {self.pb_file}: {str(e)}")
 
-    def start(self):
-        array_list = getattr(self.module, self.sheet_name + 'List')()
+    def _process_sheet(self) -> None:
+        """Process the entire Excel sheet and generate protobuf output."""
+        array_list = getattr(self.module, f"{self.sheet_name}List")()
 
-        for self.current_row in range(FIELD_VALUE_ROW, self.row_length):
-            if not self.check_annotation():
+        for row_idx in range(FIELD_VALUE_ROW, self.row_count):
+            if not self._is_comment_row(row_idx):
                 item = array_list.list.add()
-                self.parse_item(item)
-                data = array_list.SerializeToString()
-                self.save(data)
+                self._parse_row_to_item(row_idx, item)
+
+        self._save_output(array_list.SerializeToString())
 
         if global_config.save_log():
-            self.save_log(str(array_list))
+            self._save_log(str(array_list))
 
-    def parse_item(self, item):
-        self.current_col = 0
-        while self.current_col < self.col_length:
-            if self.check_flag():
-                self.parse_field(item)
-            self.current_col += 1
+    def _parse_row_to_item(self, row_idx: int, item: Any) -> None:
+        """Parse a single row into a protobuf item."""
+        for col_idx in range(self.col_count):
+            if self._is_column_enabled(col_idx):
+                self._parse_field(row_idx, col_idx, item)
 
-    def check_annotation(self):
-        field_value = self.sheet.cell_value(self.current_row, 0)
-        return str(field_value).__contains__("#")
+    def _is_comment_row(self, row_idx: int) -> bool:
+        """Check if a row is commented out (starts with #)."""
+        return str(self.sheet.cell_value(row_idx, 0)).startswith("#")
 
-    def check_flag(self):
-        key = str(self.sheet.cell_value(FIELD_FLAG_ROW, self.current_col)).strip()
-        return key.__contains__(self.flag)
+    def _is_column_enabled(self, col_idx: int) -> bool:
+        """Check if a column is enabled for the current language flag."""
+        flag_value = str(self.sheet.cell_value(FIELD_FLAG_ROW, col_idx)).strip()
+        return self.flag in flag_value
 
-    def parse_field(self, item):
-        field_type = str(self.sheet.cell_value(FIELD_TYPE_ROW, self.current_col))
-        rule = str(self.sheet.cell_value(FIELD_RULE_ROW, self.current_col))
-        field_name = str(self.sheet.cell_value(FIELD_NAME_ROW, self.current_col))
+    def _parse_field(self, row_idx: int, col_idx: int, item: Any) -> None:
+        """Parse a single field based on its rule type."""
+        field_type = str(self.sheet.cell_value(FIELD_TYPE_ROW, col_idx))
+        rule = str(self.sheet.cell_value(FIELD_RULE_ROW, col_idx)).lower()
+        field_name = str(self.sheet.cell_value(FIELD_NAME_ROW, col_idx))
+        field_value = self.sheet.cell_value(row_idx, col_idx)
 
         if rule == "optional":
-            self.set_optional_value(field_type, field_name, item)
+            self._set_optional_field(field_type, field_name, field_value, item)
         elif rule == "repeated":
-            self.set_repeated_value(field_type, field_name, item)
+            self._set_repeated_field(field_type, field_name, field_value, item)
         elif rule == "map":
-            self.set_map_value(field_type, field_name, item)
-
-    def set_map_value(self, field_type, field_name, item):
-        field_type_list = str(field_type).split(',')
-        if len(field_type_list) != 2:
-            print("value error {}".format(field_type_list))
-            raise
-        key_type = field_type_list[0]
-        value_type = field_type_list[1]
-        field_value = self.sheet.cell_value(self.current_row, self.current_col)
-        if len(field_value) > 0:
-            field_value_list = field_value.split(';')
-            for value in field_value_list:
-                value_list = value.split('-')
-                if len(value_list) != 2:
-                    print("value error {}".format(value_list))
-                    raise
-                value1 = self.get_value_by_field(key_type, value_list[0])
-                value2 = self.get_value_by_field(value_type, value_list[1])
-                item.__getattribute__(field_name).__setitem__(value1, value2)
-
-    def set_repeated_value(self, field_type, field_name, item):
-        field_value = self.sheet.cell_value(self.current_row, self.current_col)
-        if len(str(field_value)) > 0:
-            if str(field_value).find(";"):
-                field_value_list = str(field_value).split(';')
-            else:
-                field_value_list = []
-                field_value_list.append(field_value)
-
-            for temp in field_value_list:
-                if len(str(temp)) > 0:
-                    value = self.get_value_by_field(field_type, temp)
-                    item.__getattribute__(field_name).append(value)
-
-    def set_optional_value(self, field_type, field_name, item):
-        field_value = self.sheet.cell_value(self.current_row, self.current_col)
-        item.__setattr__(field_name, self.get_value_by_field(field_type, field_value))
-
-    def get_value_by_field(self, field_type, field_value):
-        if field_type == "int32" \
-                or field_type == "int64" \
-                or field_type == "uint32" \
-                or field_type == "uint64" \
-                or field_type == "sint32" \
-                or field_type == "sint64" \
-                or field_type == "fixed32" \
-                or field_type == "fixed64" \
-                or field_type == "sfixed32" \
-                or field_type == "sfixed64":
-            if len(str(field_value)) == 0:
-                return 0
-            else:
-                return int(float(field_value))
-        elif field_type == "float" or field_type == "double":
-            if len(str(field_value)) == 0:
-                return 0.0
-            else:
-                return float(field_value)
-        elif field_type == "bool":
-            if len(str(field_value)) == 0:
-                return False
-            else:
-                return True if int(float(field_value)) == 1 else False
-        elif field_type == "string":
-            return str(field_value).encode("utf8")
+            self._set_map_field(field_type, field_name, field_value, item)
         else:
-            print("error filed_type {}".format(field_type))
-            return None
+            raise ValueError(f"Unknown field rule: {rule}")
 
-    def save(self, data):
-        file_name = self.sheet_name + global_config.file_ext()
-        file = open(file_name, 'wb+')
-        file.write(data)
-        file.close()
+    def _set_optional_field(self, field_type: str, field_name: str, field_value: Any, item: Any) -> None:
+        """Set an optional field value."""
+        parsed_value = self._parse_field_value(field_type, field_value)
+        if parsed_value is not None:
+            item.__setattr__(field_name, parsed_value)
 
-    def save_log(self, data):
-        file_name = self.sheet_name + '.log'
-        file = open(file_name, 'wb+')
-        file.write(data.encode())
-        file.close()
+    def _set_repeated_field(self, field_type: str, field_name: str, field_value: Any, item: Any) -> None:
+        """Set a repeated field value."""
+        if not str(field_value):
+            return
+
+        values = str(field_value).split(';') if ";" in str(field_value) else [field_value]
+
+        for value in values:
+            if str(value):
+                parsed_value = self._parse_field_value(field_type, value)
+                if parsed_value is not None:
+                    item.__getattribute__(field_name).append(parsed_value)
+
+    def _set_map_field(self, field_type: str, field_name: str, field_value: Any, item: Any) -> None:
+        """Set a map field value."""
+        if not str(field_value):
+            return
+
+        key_type, value_type = self._parse_map_types(field_type)
+        pairs = str(field_value).split(';')
+
+        for pair in pairs:
+            if pair:
+                key, value = self._parse_map_pair(pair, key_type, value_type)
+                item.__getattribute__(field_name).__setitem__(key, value)
+
+    def _parse_map_types(self, field_type: str) -> tuple[str, str]:
+        """Parse key and value types from a map field type."""
+        types = field_type.split(',')
+        if len(types) != 2:
+            raise ValueError(f"Invalid map field type format: {field_type}")
+        return types[0].strip(), types[1].strip()
+
+    def _parse_map_pair(self, pair: str, key_type: str, value_type: str) -> tuple[Any, Any]:
+        """Parse a key-value pair for a map field."""
+        parts = pair.split('-')
+        if len(parts) != 2:
+            raise ValueError(f"Invalid map pair format: {pair}")
+        return (
+            self._parse_field_value(key_type, parts[0]),
+            self._parse_field_value(value_type, parts[1])
+        )
+
+    def _parse_field_value(self, field_type: str, value: Any) -> Optional[FieldValue]:
+        """Parse a field value according to its type."""
+        str_value = str(value).strip()
+
+        if field_type in NumericTypes:
+            return int(float(str_value)) if str_value else 0
+        elif field_type in FloatTypes:
+            return float(str_value) if str_value else 0.0
+        elif field_type == "bool":
+            return bool(int(float(str_value))) if str_value else False
+        elif field_type == "string":
+            return str_value.encode("utf8")
+        else:
+            raise ValueError(f"Unsupported field type: {field_type}")
+
+    def _save_output(self, data: bytes) -> None:
+        """Save the serialized protobuf data to file."""
+        output_file = f"{self.sheet_name}{global_config.file_ext()}"
+        try:
+            with open(output_file, 'wb') as f:
+                f.write(data)
+        except IOError as e:
+            raise RuntimeError(f"Failed to write output file {output_file}: {str(e)}")
+
+    def _save_log(self, data: str) -> None:
+        """Save a log file with human-readable output."""
+        log_file = f"{self.sheet_name}.log"
+        try:
+            with open(log_file, 'w', encoding='utf-8') as f:
+                f.write(data)
+        except IOError as e:
+            raise RuntimeError(f"Failed to write log file {log_file}: {str(e)}")
