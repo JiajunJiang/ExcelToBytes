@@ -58,15 +58,24 @@ class command:
 
     @staticmethod
     def load_moudle(pb_file):
-        sys.path.append(os.getcwd())
-        exec('from ' + pb_file + ' import *')
+        import importlib.util
+        import sys
 
-        reload(sys.modules["google.protobuf.internal.builder"])
-        reload(sys.modules["google.protobuf.descriptor"])
-        reload(sys.modules["google.protobuf.descriptor_pool"])
-        reload(sys.modules["google.protobuf.symbol_database"])
+        # Clear protobuf internal state
+        from google.protobuf import descriptor_pool, symbol_database
+        descriptor_pool._DEFAULT = descriptor_pool.DescriptorPool()
+        symbol_database._DEFAULT = symbol_database.SymbolDatabase()
 
-        reload(sys.modules[pb_file])
+        # Get the absolute path to the pb2 file
+        pb_path = os.path.join(os.getcwd(), f"{pb_file}.py")
+
+        # Use importlib to properly load the module
+        spec = importlib.util.spec_from_file_location(pb_file, pb_path)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[pb_file] = module
+        spec.loader.exec_module(module)
+
+        return module
 
     @staticmethod
     def mkdir(folder_name):
