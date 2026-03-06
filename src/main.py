@@ -11,6 +11,10 @@ from command import command
 from interpreter import interpreter
 from parse import ExcelToProtobufParser  # Updated import
 
+# To resolve "TypeError: Couldn't build proto file into descriptor pool: duplicate file name xxx.proto",
+# we have to set PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION environment variable to "python".
+os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
+
 from google.protobuf.internal import builder as _builder
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import descriptor_pool as _descriptor_pool
