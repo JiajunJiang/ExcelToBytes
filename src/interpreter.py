@@ -1,46 +1,30 @@
 # encoding:utf-8
 
 import sys
-import xlrd
 
 import global_config
-from command import command
-
-FIELD_RULE_ROW = 0  # optional or repeated
-FIELD_TYPE_ROW = 1  # protobuf type
-FIELD_NAME_ROW = 2  # field name
-FIELD_DESC_ROW = 3  # description
-FIELD_FLAG_ROW = 4  # language flag
+from schema import Column, read_columns
 
 
 class interpreter:
-    def __init__(self, file_path, sheet_name, language_type, flag):
+    def __init__(self, work_book, sheet_name, language_type, flag):
         self.content = []
         self.flag = flag
         self.language_type = language_type
         self.sheet_name = sheet_name
-        self.file_path = file_path
         self.pb_name = "{}.proto".format(self.sheet_name)
 
         self.current_col = 0
         self.field_count = 1
+        self.nested = {}
 
-        try:
-            self.work_book = xlrd.open_workbook(self.file_path)
-        except BaseException as e:
-            print("can't open file %s" % self.file_path)
-            raise
+        self.work_book = work_book
+        self.sheet = self.work_book.sheet_by_name(self.sheet_name)
 
-        try:
-            self.sheet = self.work_book.sheet_by_name(self.sheet_name)
-        except BaseException as e:
-            print("can't open sheet %s " % self.sheet_name)
-            raise
+        self.columns = read_columns(self.sheet, self.flag)
 
-        self.row_length = len(self.sheet.col_values(0))
-        print("prepare row = %s" % self.row_length)
-        self.col_length = len(self.sheet.row_values(0))
-        print("prepare col = %s" % self.col_length)
+        self.row_length = self.sheet.nrows
+        self.col_length = self.sheet.ncols
 
         self.start()
 
@@ -51,7 +35,6 @@ class interpreter:
         self.layout_tail()
         self.layout_list()
         self.write_file()
-        command.build_python_file(self.pb_name)
 
     def layout_file_header(self):
         self.content.append("syntax = \"proto3\";\n")
@@ -75,66 +58,63 @@ class interpreter:
         self.content.append("\nmessage %s\n{\n" % struct_name)
 
     def layout_field(self):
-        while self.current_col < self.col_length:
-            if not self.check_flag():
-                self.current_col += 1
-                continue
-            else:
-                self.check_rule()
-                self.current_col += 1
+        for column in self.columns:
+            self.register_field(column)
 
-    def check_flag(self):
-        key = str(self.sheet.cell_value(FIELD_FLAG_ROW, self.current_col)).strip()
-        return key.__contains__(self.flag)
+        self.layout_nested()
 
-    def check_rule(self):
-        field_type = str(self.sheet.cell_value(FIELD_TYPE_ROW, self.current_col))
-        rule = str(self.sheet.cell_value(FIELD_RULE_ROW, self.current_col))
-        name = str(self.sheet.cell_value(FIELD_NAME_ROW, self.current_col))
-        desc = str(self.sheet.cell_value(FIELD_DESC_ROW, self.current_col))
+    def register_field(self, column: Column):
+        if len(column.path) > 1:
+            self.register_nested(column)
+            return
 
-        if not self.check_type(field_type):
-            sys.exit("Error Field Type Col = {} name = {}".format(self.current_col, name))
+        self.content.append(self.field_line(column.rule, column.field_type, column.name,
+                                             self.field_count, column.desc, "    "))
+        self.field_count += 1
 
+    def field_line(self, rule, field_type, field_name, field_number, desc, indent):
         if rule == "optional":
-            self.content.append("optional {} {} = {}; //{}\n".format(field_type, name, self.field_count, desc))
-            self.field_count += 1
+            return "{}{} {} = {}; //{}\n".format(indent, field_type, field_name, field_number, desc)
         elif rule == "repeated":
-            self.content.append("repeated {} {} = {}; //{}\n".format(field_type, name, self.field_count, desc))
-            self.field_count += 1
+            return "{}repeated {} {} = {}; //{}\n".format(indent, field_type, field_name, field_number, desc)
         elif rule == "map":
-            self.content.append("map<{}> {} = {}; //{}\n".format(field_type, name, self.field_count, desc))
+            return "{}map<{}> {} = {}; //{}\n".format(indent, field_type, field_name, field_number, desc)
+        else:
+            sys.exit("Field Rule Error rule = {} name = {}".format(rule, field_name))
+
+    def register_nested(self, column: Column):
+        messages = self.nested
+        for part in column.path[:-1]:
+            node = messages.setdefault(part, {"leaves": [], "messages": {}})
+            messages = node["messages"]
+        node["leaves"].append((column.field_type, column.rule, column.desc, column.path[-1]))
+
+    @staticmethod
+    def nested_type_name(name):
+        # 字段与其所属message内的嵌套类型共享命名空间 字段名必须与组名一致才能通过Monster.Base.Atk访问
+        # 所以嵌套message类型名加Data后缀避免冲突
+        return name + "Data"
+
+    def layout_nested(self):
+        for name, node in self.nested.items():
+            self.content.append("    {} {} = {};\n".format(self.nested_type_name(name), name, self.field_count))
             self.field_count += 1
-        else:
-            sys.exit("Field Rule Error rule = {} name = {}".format(rule, name))
+            self.layout_nested_message(name, node, 1)
 
-    def check_type(self, field_type):
-        if field_type.__contains__(","):
-            list = str(field_type).split(',')
-            if len(list) != 2:
-                return False
-            return self.check_allow_type(list[0]) and self.check_allow_type(list[1])
-        else:
-            return self.check_allow_type(field_type)
-
-    def check_allow_type(self, field_type):
-        if field_type == "int32" \
-                or field_type == "int64" \
-                or field_type == "uint32" \
-                or field_type == "uint64" \
-                or field_type == "sint32" \
-                or field_type == "sint64" \
-                or field_type == "fixed32" \
-                or field_type == "fixed64" \
-                or field_type == "sfixed32" \
-                or field_type == "sfixed64" \
-                or field_type == "float" \
-                or field_type == "double" \
-                or field_type == "bool" \
-                or field_type == "string":
-            return True
-        else:
-            return False
+    def layout_nested_message(self, name, node, depth):
+        indent = "    " * depth
+        field_indent = "    " * (depth + 1)
+        self.content.append("\n{}message {}\n{}{{\n".format(indent, self.nested_type_name(name), indent))
+        count = 1
+        for field_type, rule, desc, field_name in node["leaves"]:
+            self.content.append(self.field_line(rule, field_type, field_name, count, desc, field_indent))
+            count += 1
+        for sub_name in node["messages"]:
+            self.content.append("{}{} {} = {};\n".format(field_indent, self.nested_type_name(sub_name), sub_name, count))
+            count += 1
+        for sub_name, sub_node in node["messages"].items():
+            self.layout_nested_message(sub_name, sub_node, depth + 1)
+        self.content.append("{}}}\n".format(indent))
 
     def layout_tail(self):
         self.content.append("}\n")
@@ -143,12 +123,10 @@ class interpreter:
         self.content.append("\n")
         self.content.append("message {}List\n".format(self.sheet_name))
         self.content.append("{\n")
-        self.content.append("repeated {} list = 1;".format(self.sheet_name))
+        self.content.append("    repeated {} list = 1;".format(self.sheet_name))
         self.content.append("\n}")
 
     def write_file(self):
         file = open(self.pb_name, "w+", encoding='utf-8')
-        for line in self.content:
-            temp = line.replace("optional", "            ").replace("repeated", "    repeated")
-            file.write(temp)
+        file.write("".join(self.content))
         file.close()

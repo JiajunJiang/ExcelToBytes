@@ -1,43 +1,34 @@
 # encoding:utf-8
 
+import re
 import sys
-import xlrd
+from typing import Any, List, Optional, Union
+
 import global_config
 from command import command
-from typing import Any, Dict, List, Union, Optional
+from schema import (Column, FIELD_VALUE_ROW, FloatTypes, NumericTypes,
+                    read_columns)
 
-# Constants for row indices
-FIELD_RULE_ROW = 0  # optional or repeated
-FIELD_TYPE_ROW = 1  # protobuf type
-FIELD_NAME_ROW = 2  # field name
-FIELD_DESC_ROW = 3  # description
-FIELD_FLAG_ROW = 4  # language flag
-FIELD_VALUE_ROW = 5  # value
-
-# Type aliases
 FieldValue = Union[int, float, bool, str, bytes]
-NumericTypes = {'int32', 'int64', 'uint32', 'uint64', 'sint32', 'sint64',
-                'fixed32', 'fixed64', 'sfixed32', 'sfixed64'}
-FloatTypes = {'float', 'double'}
+
+# map 键值对 "key-value" 的分隔符是第一个不属于 key 的 '-'。
+# key 为数值类型时,先匹配可选符号开头的数字,其后的 '-' 才是分隔符,
+# 这样 "10--20"(负值)、"-5-10"(负键)、"-5--20"(双负)都能正确切分。
+NUMERIC_KEY_PAIR_RE = re.compile(r"^([+-]?(?:\d+\.?\d*|\.\d+))\s*-\s*(.*)$")
+
+# 每对数据在切分前先整体 strip,兼容 " 12 - 24 " 这类带空格的写法
+PAIR_SPLIT_RE = re.compile(r"\s*;\s*")
 
 
 class ExcelToProtobufParser:
-    def __init__(self, file_path: str, sheet_name: str, language_type: str, flag: str):
-        self.module = None
+    def __init__(self, work_book, sheet_name: str, language_type: str, flag: str):
         self.pb_file = f"{sheet_name}_pb2"
         self.flag = flag
         self.language_type = language_type
         self.sheet_name = sheet_name
-        self.file_path = file_path
 
-        try:
-            self.work_book = xlrd.open_workbook(self.file_path)
-            self.sheet = self.work_book.sheet_by_name(self.sheet_name)
-        except Exception as e:
-            raise RuntimeError(f"Failed to open file {self.file_path} or sheet {self.sheet_name}: {str(e)}")
-
-        self.row_count = len(self.sheet.col_values(0))
-        self.col_count = len(self.sheet.row_values(0))
+        self.sheet = work_book.sheet_by_name(sheet_name)
+        self.columns: List[Column] = read_columns(self.sheet, self.flag)
 
         self._load_module()
         self._process_sheet()
@@ -54,52 +45,48 @@ class ExcelToProtobufParser:
         """Process the entire Excel sheet and generate protobuf output."""
         array_list = getattr(self.module, f"{self.sheet_name}List")()
 
-        for row_idx in range(FIELD_VALUE_ROW, self.row_count):
-            if not self._is_comment_row(row_idx):
-                item = array_list.list.add()
-                self._parse_row_to_item(row_idx, item)
+        add = array_list.list.add
+        rows = self.sheet._cell_values
+        row_count = self.sheet.nrows
+        columns = self.columns
+
+        for row_idx in range(FIELD_VALUE_ROW, row_count):
+            row = rows[row_idx]
+            if str(row[0]).startswith("#"):
+                continue
+            item = add()
+            for column in columns:
+                value = row[column.index]
+                rule = column.rule
+                field_name = column.path[-1]
+                if len(column.path) > 1:
+                    target = self._resolve_target(item, column.path)
+                else:
+                    target = item
+
+                if rule == "optional":
+                    self._set_optional_field(column.field_type, field_name, value, target)
+                elif rule == "repeated":
+                    self._set_repeated_field(column.field_type, field_name, value, target)
+                else:
+                    self._set_map_field(column.field_type, field_name, value, target)
 
         self._save_output(array_list.SerializeToString())
 
         if global_config.save_log():
             self._save_log(str(array_list))
 
-    def _parse_row_to_item(self, row_idx: int, item: Any) -> None:
-        """Parse a single row into a protobuf item."""
-        for col_idx in range(self.col_count):
-            if self._is_column_enabled(col_idx):
-                self._parse_field(row_idx, col_idx, item)
-
-    def _is_comment_row(self, row_idx: int) -> bool:
-        """Check if a row is commented out (starts with #)."""
-        return str(self.sheet.cell_value(row_idx, 0)).startswith("#")
-
-    def _is_column_enabled(self, col_idx: int) -> bool:
-        """Check if a column is enabled for the current language flag."""
-        flag_value = str(self.sheet.cell_value(FIELD_FLAG_ROW, col_idx)).strip()
-        return self.flag in flag_value
-
-    def _parse_field(self, row_idx: int, col_idx: int, item: Any) -> None:
-        """Parse a single field based on its rule type."""
-        field_type = str(self.sheet.cell_value(FIELD_TYPE_ROW, col_idx))
-        rule = str(self.sheet.cell_value(FIELD_RULE_ROW, col_idx)).lower()
-        field_name = str(self.sheet.cell_value(FIELD_NAME_ROW, col_idx))
-        field_value = self.sheet.cell_value(row_idx, col_idx)
-
-        if rule == "optional":
-            self._set_optional_field(field_type, field_name, field_value, item)
-        elif rule == "repeated":
-            self._set_repeated_field(field_type, field_name, field_value, item)
-        elif rule == "map":
-            self._set_map_field(field_type, field_name, field_value, item)
-        else:
-            raise ValueError(f"Unknown field rule: {rule}")
+    def _resolve_target(self, item: Any, path: tuple) -> Any:
+        """Walk the nested-message path (Base.HP -> item.Base)."""
+        for part in path[:-1]:
+            item = getattr(item, part)
+        return item
 
     def _set_optional_field(self, field_type: str, field_name: str, field_value: Any, item: Any) -> None:
         """Set an optional field value."""
         parsed_value = self._parse_field_value(field_type, field_value)
         if parsed_value is not None:
-            item.__setattr__(field_name, parsed_value)
+            setattr(item, field_name, parsed_value)
 
     def _set_repeated_field(self, field_type: str, field_name: str, field_value: Any, item: Any) -> None:
         """Set a repeated field value."""
@@ -112,7 +99,7 @@ class ExcelToProtobufParser:
             if str(value):
                 parsed_value = self._parse_field_value(field_type, value)
                 if parsed_value is not None:
-                    item.__getattribute__(field_name).append(parsed_value)
+                    getattr(item, field_name).append(parsed_value)
 
     def _set_map_field(self, field_type: str, field_name: str, field_value: Any, item: Any) -> None:
         """Set a map field value."""
@@ -125,7 +112,7 @@ class ExcelToProtobufParser:
         for pair in pairs:
             if pair:
                 key, value = self._parse_map_pair(pair, key_type, value_type)
-                item.__getattribute__(field_name).__setitem__(key, value)
+                getattr(item, field_name)[key] = value
 
     def _parse_map_types(self, field_type: str) -> tuple[str, str]:
         """Parse key and value types from a map field type."""
@@ -135,13 +122,29 @@ class ExcelToProtobufParser:
         return types[0].strip(), types[1].strip()
 
     def _parse_map_pair(self, pair: str, key_type: str, value_type: str) -> tuple[Any, Any]:
-        """Parse a key-value pair for a map field."""
-        parts = pair.split('-')
-        if len(parts) != 2:
-            raise ValueError(f"Invalid map pair format: {pair}")
+        """Parse a key-value pair for a map field.
+
+        Pairs are separated by ';', a key from its value by the FIRST '-'.
+        Splitting on the first '-' only is what makes negative numbers
+        unambiguous: "10--20" -> key 10, value -20; "-5-10" -> key -5,
+        value 10. The old str.split('-') could not express either form.
+        """
+        pair = pair.strip()
+        if key_type in NumericTypes or key_type in FloatTypes or key_type == "bool":
+            # Numeric key: the separator is the '-' right after the leading
+            # number, so negative keys and values both parse correctly.
+            match = NUMERIC_KEY_PAIR_RE.match(pair)
+            if not match:
+                raise ValueError(f"Invalid map pair format: {pair}")
+            key_str, value_str = match.group(1), match.group(2)
+        else:
+            parts = pair.split('-', 1)
+            if len(parts) != 2:
+                raise ValueError(f"Invalid map pair format: {pair}")
+            key_str, value_str = parts
         return (
-            self._parse_field_value(key_type, parts[0]),
-            self._parse_field_value(value_type, parts[1])
+            self._parse_field_value(key_type, key_str),
+            self._parse_field_value(value_type, value_str)
         )
 
     def _parse_field_value(self, field_type: str, value: Any) -> Optional[FieldValue]:

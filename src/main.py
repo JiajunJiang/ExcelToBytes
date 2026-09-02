@@ -2,59 +2,52 @@
 import os
 import sys
 import xlrd
-import importlib
 from typing import List
 
 import global_config
 from archive import archive
 from command import command
 from interpreter import interpreter
-from parse import ExcelToProtobufParser  # Updated import
-
-from google.protobuf.internal import builder as _builder
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import descriptor_pool as _descriptor_pool
-from google.protobuf import symbol_database as _symbol_database
-
-# Reload sys for Python 2 compatibility (though consider removing if using Python 3)
-importlib.reload(sys)
+from parse import ExcelToProtobufParser
 
 
-def build_protobuf_from_excel(language: str, flag: str, excel_file: str) -> None:
+def build_protobuf_from_excel(workbook, language: str, flag: str) -> None:
     """
     Build protobuf files from Excel sheets.
 
     Args:
+        workbook: The already-opened xlrd workbook (opened once for all
+            sheets instead of once per sheet per stage).
         language: Target language for protobuf generation
         flag: Language flag (c for client, s for server)
-        excel_file: Path to Excel file
     """
-    try:
-        workbook = xlrd.open_workbook(excel_file)
-    except Exception as e:
-        raise RuntimeError(f"Failed to open Excel file {excel_file}: {str(e)}")
+    sheets = [sheet for sheet in workbook.sheets()
+              if "Sheet" not in sheet.name and "#" not in sheet.name]
+    if not sheets:
+        return
 
-    for sheet in workbook.sheets():
-        if "Sheet" in sheet.name or "#" in sheet.name:
-            continue
-
+    # Stage 1: write a .proto file for every sheet (pure in-process work)
+    proto_files = []
+    for sheet in sheets:
         print(f"Processing sheet: {sheet.name}")
+        interpreter(workbook, sheet.name, language, flag)
+        proto_files.append(f"{sheet.name}.proto")
 
-        try:
-            # Process each sheet through the pipeline
-            interpreter(excel_file, sheet.name, language, flag)
-            ExcelToProtobufParser(excel_file, sheet.name, language, flag)  # Updated to use new class
+    # Stage 2: one protoc run compiles the python bindings for all sheets
+    command.build_python_file(proto_files)
 
-            # Generate language-specific files
-            command.build_language_file(f"{sheet.name}.proto", language)
+    # Stage 3: serialize each sheet's data through its _pb2 module
+    for sheet in sheets:
+        ExcelToProtobufParser(workbook, sheet.name, language, flag)
+        print(f"Successfully processed {sheet.name}")
 
-            # Archive the results
-            archive(language, flag)
+    # Stage 4: one protoc run generates the target-language output for all
+    # sheets (protoc accepts multiple input files; one process per sheet
+    # was slow)
+    command.build_language_file(proto_files, language)
 
-            print(f"Successfully processed {sheet.name}")
-        except Exception as e:
-            print(f"Error processing sheet {sheet.name}: {str(e)}")
-            raise
+    # Archive the results once, after every sheet is done
+    archive(language, flag)
 
 
 def load_config_files() -> List[str]:
@@ -69,6 +62,9 @@ def main() -> None:
     excel_file = sys.argv[1]
 
     try:
+        # Open the workbook once and share it across all sheets and stages
+        workbook = xlrd.open_workbook(excel_file)
+
         # Process each config file
         for config_file in load_config_files():
             global_config.load(config_file)
@@ -78,7 +74,7 @@ def main() -> None:
             flag = str(global_config.language_flag())
 
             print(f"Building with flag: {flag}")
-            build_protobuf_from_excel(language, flag, excel_file)
+            build_protobuf_from_excel(workbook, language, flag)
 
     except Exception as e:
         print(f"Build failed: {str(e)}")
