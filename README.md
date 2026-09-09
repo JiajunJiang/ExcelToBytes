@@ -67,6 +67,22 @@ config.yml 可以进行修改
 
 仅导出跟服务器数据有关的Monster.xlsx
 
+#### py main.py Monster.xlsx Item.xlsx Skill.xlsx
+
+一次传入多个xlsx文件批量导出
+
+#### py main.py ./Excel
+
+传入一个目录 批量导出目录下所有xlsx文件（不含子目录）
+
+参数可以自由组合 文件和目录可以混传 导出标记c或s可以放在任意位置
+
+#### py main.py ./Excel Item.xlsx c
+
+批量导出Excel目录和Item.xlsx 仅导出客户端数据
+
+某个文件导出失败不会中断其他文件 失败的文件会在最后统一列出并以非0退出码结束
+
 ## 配置表规范
 
 可参考Monster.xlsx  
